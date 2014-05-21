@@ -161,9 +161,10 @@ function typeless_atile(tiles,T){
 	
 	this.tile_i=0;
 	this.tile=tiles[0];
-	for(var i=0;i<tiles.length;i++)
+	for(var i=0;i<tiles.length;i++){
 		tiles[i].visible=false;
-	this.children=tiles;
+		this.children.push(tiles[i]);
+	}
 
 	this.w=this.tile.w;
 	this.h=this.tile.h;

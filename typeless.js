@@ -12,6 +12,12 @@ function typeless_display(w,h,dom_parent){
 	this.context.webkitImageSmoothingEnabled=false;
 	this.context.mozImageSmoothingEnabled=false;
 
+	this.x=0;
+	this.y=0;
+	this.zx=1;
+	this.zy=1;
+	this.a=0;
+
 	dom_parent.appendChild(this.canvas);
 };
 
@@ -22,18 +28,18 @@ typeless_display.prototype.fill=function(color){
 
 typeless_display.prototype.draw_rectangle=function(x,y,w,h,color){
 	this.context.fillStyle=color;
-	this.context.fillRect(x,y,w,h);
+	this.context.fillRect(this.x+x,this.y+y,this.zx*w,this.zy*h);
 };
 	
 typeless_display.prototype.draw_text=function(text,x,y,h,color){
-	this.context.font=h+"px Courier New";
+	this.context.font=this.zy*h+"px Courier New";
 	this.context.fillStyle=color;
 	this.context.textAlign="center";
-	this.context.fillText(text,x,y);
+	this.context.fillText(text,this.x+x,this.y+y);
 };
 
 typeless_display.prototype.draw_image=function(img,src,dst){
-	this.context.drawImage(img,src.x,src.y,src.w,src.h,dst.x,dst.y,dst.w,dst.h);
+	this.context.drawImage(img,src.x,src.y,src.w,src.h,this.x+dst.x,this.y+dst.y,this.zx*dst.w,this.zy*dst.h);
 }
 
 /*******************************************************************************
@@ -74,24 +80,37 @@ typeless_object.prototype.update_tree=function(dt){
 
 typeless_object.prototype.draw_tree=function(dsp){
 	if(this.visible){
-		dsp.context.save();
-		if(this.x!=0||this.y!=0)
-			dsp.context.translate(this.x,this.y);
-		if(this.zx!=0 || this.zy!=0)
-			dsp.context.scale(this.zx,this.zy);
-		if(this.a!=0)
-			dsp.context.rotate(this.a);
-		this.draw(dsp);
+		var sx=dsp.x;
+		var sy=dsp.y;
+		dsp.x+=this.x*dsp.zx;
+		dsp.y+=this.y*dsp.zy;
+		dsp.zx*=this.zx;
+		dsp.zy*=this.zy;
+		dsp.a+=this.a;
+		if(this.a!=0){
+			dsp.context.save();		
 
+			var rx=Math.cos(this.a)*dsp.x+Math.sin(this.a)*dsp.y;
+			var ry=-Math.sin(this.a)*dsp.x+Math.cos(this.a)*dsp.y;
+			dsp.x=rx;
+			dsp.y=ry;
+			dsp.context.rotate(this.a);
+		}
+
+		this.draw(dsp);
 		for(var i=0;i<this.children.length;i++){
 			var chl=this.children[i];
-			if(chl.visible){
-				dsp.context.save();
+			if(chl.visible)
 				chl.draw_tree(dsp);
-				dsp.context.restore();
-			}
 		}
-		dsp.context.restore();
+
+		dsp.x=sx;
+		dsp.y=sy;
+		dsp.a-=this.a;
+		dsp.zx/=this.zx;
+		dsp.zy/=this.zy;
+		if(this.a!=0)
+			dsp.context.restore();
 	}
 };
 
