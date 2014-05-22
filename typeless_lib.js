@@ -47,9 +47,18 @@ typeless_loader.prototype.add_asset=function(type,load_event,media_path){
 	this.to_load++;	
 
 	var new_media=document.createElement(type);
+	if(type=="audio"||type=="video"){
+		new_media.muted=true;
+		new_media.autoplay=true;
+	}
 	var me=this;
 	new_media.addEventListener(load_event,function(evn){
 		me.to_load--;
+		if(type=="audio"||type=="video"){
+			new_media.muted=false;
+			new_media.currentPosition=0;
+			new_media.pause();
+		}
 	});
 
 	this.assets.push({
