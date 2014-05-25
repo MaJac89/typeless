@@ -18,7 +18,8 @@ function typeless_display(w,h,dom_parent){
 	this.zy=1;
 	this.a=0;
 
-	dom_parent.appendChild(this.canvas);
+	if(dom_parent!=null)
+		dom_parent.appendChild(this.canvas);
 };
 
 typeless_display.prototype.fill=function(color){
@@ -28,18 +29,37 @@ typeless_display.prototype.fill=function(color){
 
 typeless_display.prototype.draw_rectangle=function(x,y,w,h,color){
 	this.context.fillStyle=color;
-	this.context.fillRect(this.x+x,this.y+y,this.zx*w,this.zy*h);
+	this.context.fillRect(
+		Math.round(this.x+x),
+		Math.round(this.y+y),
+		Math.round(this.zx*w),
+		Math.round(this.zy*h)
+	);
 };
 	
 typeless_display.prototype.draw_text=function(text,x,y,h,color){
 	this.context.font=this.zy*h+"px Courier New";
 	this.context.fillStyle=color;
 	this.context.textAlign="center";
-	this.context.fillText(text,this.x+x,this.y+y);
+	this.context.fillText(
+		text,
+		Math.round(this.x+x),
+		Math.round(this.y+y)
+	);
 };
 
 typeless_display.prototype.draw_image=function(img,src,dst){
-	this.context.drawImage(img,src.x,src.y,src.w,src.h,this.x+dst.x,this.y+dst.y,this.zx*dst.w,this.zy*dst.h);
+	this.context.drawImage(
+		img,
+		Math.round(src.x),
+		Math.round(src.y),
+		Math.round(src.w),
+		Math.round(src.h),
+		Math.round(this.x+dst.x),
+		Math.round(this.y+dst.y),
+		Math.round(this.zx*dst.w),
+		Math.round(this.zy*dst.h)
+	);
 }
 
 /*******************************************************************************
@@ -60,7 +80,31 @@ function typeless_object(){
 	this.zy=1;
 	this.color="#000000"
 
+	this.parent=null;
 	this.children=[]
+	this.push_child=this.children.push;
+	this.pop_child=this.children.pop;
+	this.splice_children=this.children.splice;
+	var me=this;
+	this.children.push=function(new_element){
+		me.push_child.call(this,new_element);
+		new_element.parent=me;
+	}
+	this.children.concat=function(new_array){
+		for(var i=0; i<new_array.length; i++)
+			this.push(new_array[i]);
+	}
+	this.children.pop=function(){
+		var deleted=me.pop_child.call(this)	
+		deleted.parent=null;
+		return deleted;
+	}
+	this.children.splice=function(from,n){
+		var deleted=me.splice_children.call(this,from,n);
+		for(var i=0; i<deleted.length; i++)
+			deleted[i].parent=null;
+		return deleted;
+	}
 }
 
 typeless_object.prototype.update_tree=function(dt){
@@ -119,6 +163,27 @@ typeless_object.prototype.update=function(dt){};
 typeless_object.prototype.draw=function(dsp){
 	dsp.draw_rectangle(0,0,this.w,this.h,this.color);
 };
+
+typeless_object.prototype.root_transformation=function(x,y){
+	var obj=this;
+	var tx=x;
+	var ty=y;
+	while(obj!=null){
+		tx*=obj.zx;
+		ty*=obj.zy;
+		if(obj.a!=0){
+			var rx=Math.cos(obj.a)*tx-Math.sin(obj.a)*ty;
+			var ry=Math.sin(obj.a)*tx+Math.cos(obj.a)*ty;
+			tx=rx;
+			ty=ry;
+		}
+		tx+=obj.x;
+		ty+=obj.y;
+		obj=obj.parent;
+	}
+
+	return({x:tx, y:ty});
+}
 
 /*******************************************************************************
  * Typeless Library - Tileset
