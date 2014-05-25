@@ -124,6 +124,7 @@ typeless_game.prototype.run=function(fps_cap){
 			if(me.DT==1||me.dt>me.DT){
 				me.t=t-(me.dt%me.DT);	
 				me.update_tree(me.dt);
+				me.dsp.fill(me.color);
 				me.draw_tree(me.dsp);
 			}
 			requestAnimationFrame(cycle);
@@ -132,12 +133,15 @@ typeless_game.prototype.run=function(fps_cap){
 		(function cycle(t){
 			me.dt=t-me.dt;
 			me.update_tree(me.dt);
+			me.dsp.fill(me.color);
 			me.draw_tree(me.dsp);
 			me.dt=t;
 			requestAnimationFrame(cycle);
 		})(0);
 	}
 }
+
+typeless_game.prototype.draw=function(dsp){}
 
 /*******************************************************************************
  * Typeless Library - Tile Object 
@@ -196,3 +200,58 @@ typeless_atile.prototype.update=function(dt){
 }
 
 typeless_atile.prototype.draw=function(dsp){}
+
+/*******************************************************************************
+ * Typeless Library - Tilemap Object 
+ ******************************************************************************/
+
+function typeless_tilemap(tiles,map){
+	typeless_object.call(this);
+
+	this.tiles=tiles;
+	this.map=map;
+	this.w=map[0].length*tiles[0].w;
+	this.h=map.length*tiles[0].h;
+	this.dsp=new typeless_display(this.w,this.h,null);
+	
+	for(var i=0;i<map.length;i++){
+		for(var j=0;j<map[i].length;j++){
+			var tile=tiles[map[i][j]];
+			this.dsp.x=j*tile.w;
+			this.dsp.y=i*tile.h;
+			tile.draw(this.dsp);
+		}
+	}
+}
+typeless_inherit(typeless_tilemap,typeless_object);
+
+typeless_tilemap.prototype.draw=function(dsp){
+	dsp.draw_image(this.dsp.canvas,{x:0,y:0,w:this.w,h:this.h},{x:0,y:0,w:this.w,h:this.h});
+}
+
+/*******************************************************************************
+ * Typeless Library - Tween Object 
+ ******************************************************************************/
+
+function typeless_tween(property,T,args,f){
+	typeless_object.call(this);
+
+	this.visible=false;
+
+	this.property=property;
+	this.T=T;
+	this.t=0;
+	this.f=f;
+	this.args=args;
+}
+typeless_inherit(typeless_tween,typeless_object);
+
+typeless_tween.prototype.update=function(dt){
+	this.t+=dt;
+	if(this.t>=this.T && this.T>-1){
+		this.deleted=true;
+	}else{
+		var args=this.args;
+		this.parent[this.property]=eval(this.f);
+	}
+}
