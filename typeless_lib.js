@@ -174,10 +174,6 @@ function typeless_atile(tiles,T){
 	
 	this.tile_i=0;
 	this.tile=tiles[0];
-	for(var i=0;i<tiles.length;i++){
-		tiles[i].visible=false;
-		this.children.push(tiles[i]);
-	}
 
 	this.w=this.tile.w;
 	this.h=this.tile.h;
@@ -185,21 +181,20 @@ function typeless_atile(tiles,T){
 	this.T=T;
 	this.t=T;
 }
-typeless_inherit(typeless_atile,typeless_object)
+typeless_inherit(typeless_atile,typeless_object);
 
 typeless_atile.prototype.update=function(dt){
 	this.t-=dt;
 	if(this.t<=0){
-		this.tile.visible=false;
 		this.tile_i=(this.tile_i+1)%this.tiles.length;	
 		this.tile=this.tiles[this.tile_i];
-		this.tile.visible=true;
-
 		this.t=this.T;
 	}
 }
 
-typeless_atile.prototype.draw=function(dsp){}
+typeless_atile.prototype.draw=function(dsp){
+	this.tile.draw_tree(dsp);
+}
 
 /*******************************************************************************
  * Typeless Library - Tilemap Object 
@@ -233,7 +228,7 @@ typeless_tilemap.prototype.draw=function(dsp){
  * Typeless Library - Tween Object 
  ******************************************************************************/
 
-function typeless_tween(property,T,args,f){
+function typeless_tween(property,T,f){
 	typeless_object.call(this);
 
 	this.visible=false;
@@ -242,7 +237,6 @@ function typeless_tween(property,T,args,f){
 	this.T=T;
 	this.t=0;
 	this.f=f;
-	this.args=args;
 }
 typeless_inherit(typeless_tween,typeless_object);
 
@@ -251,7 +245,6 @@ typeless_tween.prototype.update=function(dt){
 	if(this.t>=this.T && this.T>-1){
 		this.deleted=true;
 	}else{
-		var args=this.args;
-		this.parent[this.property]=eval(this.f);
+		this.parent[this.property]=this.f.call(this,dt);
 	}
 }
