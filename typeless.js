@@ -6,6 +6,7 @@ function typeless_display(w,h,dom_parent){
 	this.canvas=document.createElement("canvas");
 	this.canvas.width=w;
 	this.canvas.height=h;
+	this.canvas.tabIndex=0;
 
 	this.context=this.canvas.getContext("2d");
 	this.context.imageSmoothingEnabled=false;
@@ -18,8 +19,10 @@ function typeless_display(w,h,dom_parent){
 	this.zy=1;
 	this.a=0;
 
-	if(dom_parent!=null)
+	if(dom_parent!=null){
 		dom_parent.appendChild(this.canvas);
+		this.canvas.focus();
+	}
 };
 
 typeless_display.prototype.fill=function(color){
@@ -30,21 +33,21 @@ typeless_display.prototype.fill=function(color){
 typeless_display.prototype.draw_rectangle=function(x,y,w,h,color){
 	this.context.fillStyle=color;
 	this.context.fillRect(
-		Math.round(this.x+x),
-		Math.round(this.y+y),
+		Math.round(this.x+this.zx*x),
+		Math.round(this.y+this.zy*y),
 		Math.round(this.zx*w),
 		Math.round(this.zy*h)
 	);
 };
 	
-typeless_display.prototype.draw_text=function(text,x,y,h,color){
+typeless_display.prototype.draw_text=function(text,x,y,h,color,align){
 	this.context.font=this.zy*h+"px Courier New";
 	this.context.fillStyle=color;
-	this.context.textAlign="center";
+	this.context.textAlign=align;
 	this.context.fillText(
 		text,
-		Math.round(this.x+x),
-		Math.round(this.y+y)
+		Math.round(this.x+this.zx*x),
+		Math.round(this.y+this.zy*y)
 	);
 };
 
@@ -55,8 +58,8 @@ typeless_display.prototype.draw_image=function(img,src,dst){
 		Math.round(src.y),
 		Math.round(src.w),
 		Math.round(src.h),
-		Math.round(this.x+dst.x),
-		Math.round(this.y+dst.y),
+		Math.round(this.x+this.zx*dst.x),
+		Math.round(this.y+this.zy*dst.y),
 		Math.round(this.zx*dst.w),
 		Math.round(this.zy*dst.h)
 	);
@@ -109,8 +112,6 @@ function typeless_object(){
 
 typeless_object.prototype.update_tree=function(dt){
 	if(this.active){
-		this.update(dt);
-
 		for(var i=0;i<this.children.length;i++){
 			var chl=this.children[i];
 			if(chl.deleted){
@@ -119,6 +120,7 @@ typeless_object.prototype.update_tree=function(dt){
 				chl.update_tree(dt);
 			}
 		}
+		this.update(dt);
 	}
 };
 
@@ -164,13 +166,23 @@ typeless_object.prototype.draw=function(dsp){
 	dsp.draw_rectangle(0,0,this.w,this.h,this.color);
 };
 
-typeless_object.prototype.root_transformation=function(x,y){
+typeless_object.prototype.drawing_rect=function(x,y){
 	var obj=this;
-	var tx=x;
-	var ty=y;
+	var tx=0;
+	var tw=1;
+	var ty=0;
+	var th=1;
+
+	if(x)
+		tx=x;
+	if(y)
+		ty=y;
+
 	while(obj!=null){
 		tx*=obj.zx;
+		tw*=obj.zx;
 		ty*=obj.zy;
+		th*=obj.zx;
 		if(obj.a!=0){
 			var rx=Math.cos(obj.a)*tx-Math.sin(obj.a)*ty;
 			var ry=Math.sin(obj.a)*tx+Math.cos(obj.a)*ty;
@@ -182,7 +194,7 @@ typeless_object.prototype.root_transformation=function(x,y){
 		obj=obj.parent;
 	}
 
-	return({x:tx, y:ty});
+	return({x:tx, y:ty, w:tw*this.w, h:th*this.h, zx:tw, zy:th});
 }
 
 /*******************************************************************************
