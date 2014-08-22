@@ -198,26 +198,6 @@ typeless_object.prototype.drawing_rect=function(x,y){
 }
 
 /*******************************************************************************
- * Typeless Library - Tileset
- ******************************************************************************/
-
-function typeless_tileset(img,tile_w,tile_h,tile_p){
-	this.img=img;
-	this.tile_w=tile_w;
-	this.tile_h=tile_h;
-	this.tile_p=tile_p;
-}
-
-typeless_tileset.prototype.get_tile_rect=function(r,c,w,h){
-	return {
-		x:(this.tile_w+this.tile_p)*c+this.tile_p,
-		y:(this.tile_h+this.tile_p)*r+this.tile_p,
-		w:this.tile_w*w,
-		h:this.tile_h*h
-	};
-}
-
-/*******************************************************************************
  * Typeless engine - Utility Functions 
  ******************************************************************************/
 

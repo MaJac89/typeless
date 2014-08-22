@@ -92,6 +92,7 @@ typeless_loader.prototype.draw=function(dsp){
 	dsp.draw_text("-made with typeless engine-",0,this.h,this.h/2,this.color,"center");
 }
 
+
 /*******************************************************************************
  * Typeless engine - Game Object 
  ******************************************************************************/
@@ -154,6 +155,28 @@ typeless_game.prototype.update=function(dt){
 	this.events_queue.splice(0);
 }
 
+
+/*******************************************************************************
+ * Typeless Library - Tileset
+ ******************************************************************************/
+
+function typeless_tileset(img,tile_w,tile_h,tile_p){
+	this.img=img;
+	this.tile_w=tile_w;
+	this.tile_h=tile_h;
+	this.tile_p=tile_p;
+}
+
+typeless_tileset.prototype.get_tile_rect=function(r,c,w,h){
+	return {
+		x:(this.tile_w+this.tile_p)*c+this.tile_p,
+		y:(this.tile_h+this.tile_p)*r+this.tile_p,
+		w:this.tile_w*w,
+		h:this.tile_h*h
+	};
+}
+
+
 /*******************************************************************************
  * Typeless Library - Tile Object 
  ******************************************************************************/
@@ -173,6 +196,7 @@ typeless_inherit(typeless_tile,typeless_object);
 typeless_tile.prototype.draw=function(dsp){
 	dsp.draw_image(this.tileset.img,this.tile_rect,this.rect);
 }
+
 
 /*******************************************************************************
  * Typeless Library - Animated Tile Object
@@ -212,6 +236,7 @@ typeless_atile.prototype.update=function(dt){
 typeless_atile.prototype.draw=function(dsp){
 	this.tile.draw_tree(dsp);
 }
+
 
 /*******************************************************************************
  * Typeless Library - Tilemap Object 
@@ -264,6 +289,7 @@ typeless_tilemap.prototype.update=function(dt){
 typeless_tilemap.prototype.draw=function(dsp){
 	dsp.draw_image(this.dsp.canvas,{x:0,y:0,w:this.w,h:this.h},{x:0,y:0,w:this.w,h:this.h});
 }
+
 
 /*******************************************************************************
  * Typeless Library - Tween Object 
